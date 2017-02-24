@@ -4,7 +4,7 @@
 #    OpenERP, Open Source Management Solution
 #    added by stella.fredo@gmail.com
 #    based on Fleet analytic account by CLEARCORP S.A. <http://clearcorp.co.cr> and AURIUM TECHNOLOGIES <http://auriumtechnologies.com>
-#    
+#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
@@ -20,11 +20,14 @@
 #
 ##############################################################################
 from openerp import models, fields, api, _
+import logging
+_logger = logging.getLogger(__name__)
+
 
 class FleetVehicle(models.Model):
 
     _inherit = 'fleet.vehicle'
-   
+
 
     @api.model
     def create(self, vals):
@@ -33,7 +36,7 @@ class FleetVehicle(models.Model):
         account_id=acount_obj.create({'name':self._vehicle_name_get(fleet_id)})
         fleet_id.write({'analytic_account_id':account_id.id,'use_tasks':True,'use_issues':True})
         return fleet_id
-     
+
     @api.multi
     def _count_vehicle_task(self):
         project_obj = self.env['project.project']
@@ -44,29 +47,33 @@ class FleetVehicle(models.Model):
         issue_obj = self.env['project.project']
         self.issue_count=len(issue_obj.search([('analytic_account_id', '=', self.analytic_account_id.id)]).issue_ids)
 
-        
+
     @api.multi
     def write(self, vals):
         acount_obj=self.env['account.analytic.account']
-        res = super(FleetVehicle, self).write(vals)
-        if not self.analytic_account_id:
-            account_id=acount_obj.create({'name':self._vehicle_name_get(self)})
-            self.write({'analytic_account_id':account_id.id,'use_tasks':True,'use_issues':True})
-        self.analytic_account_id.write({'name':self.name,'use_tasks':True,'use_issues':True})
+        res = False
+        for record in self:
+            if not record.analytic_account_id:
+                account_id=acount_obj.create({'name':record._vehicle_name_get(self)})
+                vals.update({'analytic_account_id':account_id.id,'use_tasks':True,'use_issues':True})
+            res = super(FleetVehicle, record).write(vals)
+            record.analytic_account_id.write({'name':record.name,'use_tasks':True,'use_issues':True})
         return res
-    
-    @api.multi
+
+    @api.model
     def _vehicle_name_get(self,record):
-        res=record.model_id.brand_id.name + '/' + record.model_id.name + ' / ' + record.license_plate
+        res=(record.model_id.brand_id.name or '') + '/' + (record.model_id.name or '') + ' / ' + (record.license_plate or '')
         return res
 
     analytic_account_id = fields.Many2one('account.analytic.account',string='Analytic Account')
     task_count = fields.Integer(compute=_count_vehicle_task, string="Vehicle Tasks" , multi=True)
     issue_count = fields.Integer(compute=_count_vehicle_issue, string="Vehicle Issues" , multi=True)
-    
-    
+    use_tasks = fields.Boolean(string="Use Tasks")
+    use_issues = fields.Boolean(string="Use Issues")
+
+
 class  fleet_vehicle_log_services(models.Model):
 
     _inherit = 'fleet.vehicle.log.services'
     invoice_id = fields.Many2one('account.invoice',string='Facture')
- 
+
