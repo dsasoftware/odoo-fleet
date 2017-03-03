@@ -18,9 +18,9 @@
                     </group>
                 </xpath>
                 <xpath expr="/form/sheet/div[2]/button[1]" position="before">
-                    <button name="%(project.act_project_project_2_project_task_all)d"
+                    <button name="action_view_tasks"
                             class="oe_stat_button"
-                            type="action"
+                            type="object"
                             icon="fa-tasks"
                             help="Show tasks for this vehicle" >
                             <field name="task_count" widget="statinfo" string="Tasks"/>
@@ -47,5 +47,6 @@
                 </xpath>
             </field>
         </record>
+
     </data>
 </openerp>

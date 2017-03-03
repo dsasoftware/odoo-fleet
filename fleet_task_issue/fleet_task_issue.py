@@ -67,6 +67,21 @@ class FleetVehicle(models.Model):
         res=(record.model_id.brand_id.name or '') + '/' + (record.model_id.name or '') + '/' + (record.license_plate or '')
         return res
 
+    @api.multi
+    def action_view_tasks(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'view_type': 'kanban',
+            'view_mode': 'kanban',
+            'view_id': self.env.ref('project.view_task_kanban').id,
+            'target': 'current',
+            'context': {
+                'search_default_project_id': [self.project_id.id],
+                'default_project_id': self.project_id.id,
+            },
+        }
+
     project_id = fields.Many2one(comodel_name='project.project', string='Project', readonly=True)
     analytic_account_id = fields.Many2one('account.analytic.account',string='Analytic Account')
     task_count = fields.Integer(compute=_count_vehicle_task, string="Vehicle Tasks" , multi=True)
@@ -77,4 +92,3 @@ class  fleet_vehicle_log_services(models.Model):
 
     _inherit = 'fleet.vehicle.log.services'
     invoice_id = fields.Many2one('account.invoice',string='Facture')
-
