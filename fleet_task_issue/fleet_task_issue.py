@@ -34,7 +34,7 @@ class FleetVehicle(models.Model):
         acount_obj=self.env['account.analytic.account']
         fleet_id = super(FleetVehicle, self).create(vals)
         account_id=acount_obj.create({'name':self._vehicle_name_get(fleet_id)})
-        fleet_id.write({'analytic_account_id':account_id.id,'use_tasks':True,'use_issues':True})
+        fleet_id.write({'analytic_account_id':account_id.id})
         return fleet_id
 
     @api.multi
@@ -55,21 +55,22 @@ class FleetVehicle(models.Model):
         for record in self:
             if not record.analytic_account_id:
                 account_id=acount_obj.create({'name':record._vehicle_name_get(self)})
-                vals.update({'analytic_account_id':account_id.id,'use_tasks':True,'use_issues':True})
-            res = super(FleetVehicle, record).write(vals)
+                vals.update({'analytic_account_id':account_id.id})
             record.analytic_account_id.write({'name':record.name,'use_tasks':True,'use_issues':True})
+            project_id = self.env['project.project'].search([('analytic_account_id', '=', self.analytic_account_id.id)])
+            vals.update({'project_id': project_id.id})
+            res = super(FleetVehicle, record).write(vals)
         return res
 
     @api.model
     def _vehicle_name_get(self,record):
-        res=(record.model_id.brand_id.name or '') + '/' + (record.model_id.name or '') + ' / ' + (record.license_plate or '')
+        res=(record.model_id.brand_id.name or '') + '/' + (record.model_id.name or '') + '/' + (record.license_plate or '')
         return res
 
+    project_id = fields.Many2one(comodel_name='project.project', string='Project', readonly=True)
     analytic_account_id = fields.Many2one('account.analytic.account',string='Analytic Account')
     task_count = fields.Integer(compute=_count_vehicle_task, string="Vehicle Tasks" , multi=True)
     issue_count = fields.Integer(compute=_count_vehicle_issue, string="Vehicle Issues" , multi=True)
-    use_tasks = fields.Boolean(string="Use Tasks")
-    use_issues = fields.Boolean(string="Use Issues")
 
 
 class  fleet_vehicle_log_services(models.Model):

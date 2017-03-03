@@ -7,6 +7,9 @@
             <field name="type">form</field>
             <field name="inherit_id" ref="fleet.fleet_vehicle_form"/>
             <field name="arch" type = "xml">
+                <field name="car_value" position="after">
+                    <field name="project_id"/>
+                </field>
                 <xpath expr="/form/sheet/group[2]" position="after">
                     <group>
                         <group string="Analytic accounts">
@@ -29,11 +32,11 @@
                             help="Show issues for this vehicle" >
                             <field name="issue_count" widget="statinfo" string="Issues"/>
                     </button>
-                </xpath> 
+                </xpath>
             </field>
         </record>
 
-<record model="ir.ui.view" id = "fleet_vehicle_log_services_form_view">
+        <record model="ir.ui.view" id = "fleet_vehicle_log_services_form_view">
             <field name="name">fleet.vehicle.log.services.form</field>
             <field name="model">fleet.vehicle.log.services</field>
             <field name="type">form</field>
