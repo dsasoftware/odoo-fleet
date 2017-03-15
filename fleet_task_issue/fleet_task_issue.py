@@ -54,10 +54,10 @@ class FleetVehicle(models.Model):
         res = False
         for record in self:
             if not record.analytic_account_id:
-                account_id=acount_obj.create({'name':record._vehicle_name_get(self)})
+                account_id=acount_obj.create({'name':record._vehicle_name_get(record)})
                 vals.update({'analytic_account_id':account_id.id})
             record.analytic_account_id.write({'name':record.name,'use_tasks':True,'use_issues':True})
-            project_id = self.env['project.project'].search([('analytic_account_id', '=', self.analytic_account_id.id)])
+            project_id = self.env['project.project'].search([('analytic_account_id', '=', record.analytic_account_id.id)])
             vals.update({'project_id': project_id.id})
             res = super(FleetVehicle, record).write(vals)
         return res
